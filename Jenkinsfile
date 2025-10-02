@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         DOCKER_HUB_REPO = 'berahulb11'
-        BACKEND_IMAGE = "${DOCKER_HUB_REPO}/mern-backend"
-        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend"
+        GIT_COMMIT_SHORT = "${env.GIT_COMMIT?.take(7)}"
+        BACKEND_IMAGE = "${DOCKER_HUB_REPO}/mern-backend:${GIT_COMMIT_SHORT}"
+        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend:${GIT_COMMIT_SHORT}"
     }
 
     stages {
@@ -27,11 +28,9 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
-                        bat '''
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %BACKEND_IMAGE%
-                        docker push %FRONTEND_IMAGE%
-                        '''
+                        bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
+                        bat 'docker push %BACKEND_IMAGE%'
+                        bat 'docker push %FRONTEND_IMAGE%'
                     }
                 }
             }
