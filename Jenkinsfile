@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKER_HUB_REPO = 'berahulb11'
-        // We will assign GIT_COMMIT_SHORT inside a script block later
+        BACKEND_IMAGE = "${DOCKER_HUB_REPO}/mern-backend"
+        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend"
     }
 
     stages {
@@ -13,23 +14,13 @@ pipeline {
             }
         }
 
-        stage('Set Commit Hash') {
-            steps {
-                script {
-                    env.GIT_COMMIT_SHORT = env.GIT_COMMIT?.take(7)
-                    env.BACKEND_IMAGE = "${env.DOCKER_HUB_REPO}/mern-backend:${env.GIT_COMMIT_SHORT}"
-                    env.FRONTEND_IMAGE = "${env.DOCKER_HUB_REPO}/mern-frontend:${env.GIT_COMMIT_SHORT}"
-                }
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
                 script {
-                    // Specify Dockerfile explicitly inside each folder
+                    // Use Groovy string interpolation for environment variables here
                     bat """
-                        docker build -t ${env.BACKEND_IMAGE} -f learnerReportCS_backend/Dockerfile learnerReportCS_backend
-                        docker build -t ${env.FRONTEND_IMAGE} -f learnerReportCS_frontend/Dockerfile learnerReportCS_frontend
+                        docker build -t ${BACKEND_IMAGE} learnerReportCS_backend
+                        docker build -t ${FRONTEND_IMAGE} learnerReportCS_frontend
                     """
                 }
             }
@@ -41,8 +32,8 @@ pipeline {
                     script {
                         bat """
                             echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                            docker push ${env.BACKEND_IMAGE}
-                            docker push ${env.FRONTEND_IMAGE}
+                            docker push ${BACKEND_IMAGE}
+                            docker push ${FRONTEND_IMAGE}
                         """
                     }
                 }
