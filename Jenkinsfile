@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/rahulsaini0160/Container-Orchestration-learnerreport-k8s-helm.git'
+                git branch: 'main', url: 'https://github.com/rahulsaini0160/Container-Orchestration-learnerreport-k8s-helm.git'
             }
         }
 
