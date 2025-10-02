@@ -10,15 +10,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/rahulsaini0160/Container-Orchestration-learnerreport-k8s-helm.git'
+                git branch: 'main', url: 'https://github.com/rahulsaini0160/Container-Orchestration-learnerreport-k8s-helm.git'
             }
         }
 
         stage('Build Docker Images') {
             steps {
                 script {
-                    sh 'docker build -t $BACKEND_IMAGE ./learnerReportCS_backend'
-                    sh 'docker build -t $FRONTEND_IMAGE ./learnerReportCS_frontend'
+                    bat 'docker build -t %BACKEND_IMAGE% learnerReportCS_backend'
+                    bat 'docker build -t %FRONTEND_IMAGE% learnerReportCS_frontend'
                 }
             }
         }
@@ -27,9 +27,11 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
-                        sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                        sh 'docker push $BACKEND_IMAGE'
-                        sh 'docker push $FRONTEND_IMAGE'
+                        bat '''
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %BACKEND_IMAGE%
+                        docker push %FRONTEND_IMAGE%
+                        '''
                     }
                 }
             }
@@ -37,7 +39,7 @@ pipeline {
 
         stage('Deploy with Helm') {
             steps {
-                sh 'helm upgrade --install learnerreport ./learnerreport-chart'
+                bat 'helm upgrade --install learnerreport learnerreport-chart'
             }
         }
     }
