@@ -3,9 +3,7 @@ pipeline {
 
     environment {
         DOCKER_HUB_REPO = 'berahulb11'
-        GIT_COMMIT_SHORT = "${env.GIT_COMMIT?.take(7)}"
-        BACKEND_IMAGE = "${DOCKER_HUB_REPO}/mern-backend:${GIT_COMMIT_SHORT}"
-        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend:${GIT_COMMIT_SHORT}"
+        // We will assign GIT_COMMIT_SHORT inside a script block later
     }
 
     stages {
@@ -15,11 +13,24 @@ pipeline {
             }
         }
 
+        stage('Set Commit Hash') {
+            steps {
+                script {
+                    env.GIT_COMMIT_SHORT = env.GIT_COMMIT?.take(7)
+                    env.BACKEND_IMAGE = "${env.DOCKER_HUB_REPO}/mern-backend:${env.GIT_COMMIT_SHORT}"
+                    env.FRONTEND_IMAGE = "${env.DOCKER_HUB_REPO}/mern-frontend:${env.GIT_COMMIT_SHORT}"
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             steps {
                 script {
-                    bat 'docker build -t %BACKEND_IMAGE% learnerReportCS_backend'
-                    bat 'docker build -t %FRONTEND_IMAGE% learnerReportCS_frontend'
+                    // Specify Dockerfile explicitly inside each folder
+                    bat """
+                        docker build -t ${env.BACKEND_IMAGE} -f learnerReportCS_backend/Dockerfile learnerReportCS_backend
+                        docker build -t ${env.FRONTEND_IMAGE} -f learnerReportCS_frontend/Dockerfile learnerReportCS_frontend
+                    """
                 }
             }
         }
@@ -28,9 +39,11 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
-                        bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
-                        bat 'docker push %BACKEND_IMAGE%'
-                        bat 'docker push %FRONTEND_IMAGE%'
+                        bat """
+                            echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                            docker push ${env.BACKEND_IMAGE}
+                            docker push ${env.FRONTEND_IMAGE}
+                        """
                     }
                 }
             }
