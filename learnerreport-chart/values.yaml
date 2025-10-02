@@ -1,0 +1,23 @@
+backend:
+  image: berahulb11/mern-backend
+  tag: latest
+  port: 3000
+  env:
+    ATLAS_URI: "mongodb://mongo-service:27017/learnerdb"
+    HASH_KEY: "thisIsMyHashKey"
+    JWT_SECRET_KEY: "thisIsMyJwtSecretKey"
+
+frontend:
+  image: berahulb11/mern-frontend
+  tag: latest
+  port: 3000
+  nodePort: 31559
+  env:
+    REACT_APP_API_BASE_URL: "http://backend-service:3000"
+
+mongo:
+  service:
+    port: 27017
+  image:
+    repository: mongo
+    tag: latest
