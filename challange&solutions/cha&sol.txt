@@ -1,0 +1,6 @@
+ Challenge                       Solution                                          
+ ------------------------------  -------------------------------------------------
+ Handling environment variables  Managed via Helm templating                       
+ Secrets management              Used Kubernetes Secret; recommended SealedSecrets 
+ CI/CD automation                Jenkins pipeline builds, pushes & deploys         
+ Cluster access from Jenkins     Kubeconfig injected via credentials               
